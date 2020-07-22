@@ -1,9 +1,11 @@
 import os
 import logging
 
+log = logging.getLogger(__name__)
+
 from PyQt5 import uic
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDesktopWidget
+from PyQt5.QtWidgets import QDesktopWidget, QLineEdit
 
 from kadas.kadasgui import (
     KadasBottomBar,
@@ -51,8 +53,14 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
         self.layerSelector = KadasLayerSelectionWidget(canvas, iface.layerTreeView(),
                                                         lambda x: isinstance(x, IsochronesLayer),
                                                         self.createLayer)
-        self.layerSelector.createLayerIfEmpty("Isochrones")
-        self.layout().addWidget(self.layerSelector, 0, 0, 1, 2)
+        #self.layerSelector.createLayerIfEmpty("Isochrones")
+        #self.layout().addWidget(self.layerSelector, 0, 0, 1, 2)
+
+        self.textbox = QLineEdit(self)
+        self.textbox.resize(80,40)
+        self.textbox.setText("NewIsochrones")
+        self.layout().addWidget(self.textbox, 0, 0, 1, 2)
+
 
         self.comboBoxVehicles.addItems(vehicles.vehicles)
 
@@ -107,7 +115,19 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
 
     def calculate(self):
         clear = self.checkBoxRemovePrevious.isChecked()
-        layer = self.layerSelector.getSelectedLayer()
+        #layer = self.layerSelector.getSelectedLayer()
+        #self.layerSelector.createLayerIfEmpty(self.textbox.text())
+        log.debug('isochrones layer name = {}'.format(self.textbox.text()))
+        
+        try:
+            layer =  QgsProject.instance().mapLayersByName(self.textbox.text())[0] # FIXME: we do not consider if there are several layers with the same name here
+            QgsProject.instance().removeMapLayer( layer.id() )
+        except IndexError:
+            log.debug('this layer was not found: {}'.format(self.textbox.text()))
+        layer = self.createLayer(self.textbox.text())
+        QgsProject.instance().addMapLayer(layer)
+        self.layerSelector.setSelectedLayer(layer)
+
         if layer is None:
             pushWarning("Please, select a valid destination layer")
             return
