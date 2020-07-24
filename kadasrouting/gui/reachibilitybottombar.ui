@@ -135,7 +135,7 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="4">
+   <item row="0" column="4">
     <widget class="QPushButton" name="btnCalculate">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
