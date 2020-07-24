@@ -1,7 +1,7 @@
 import os
 import logging
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 from PyQt5 import uic
 from PyQt5.QtGui import QIcon
@@ -27,7 +27,7 @@ from qgis.core import (
     QgsRectangle
     )
 
-from kadasrouting.core.isochroneslayer import IsochronesLayer
+from kadasrouting.core.isochroneslayer import IsochronesLayer, IsochroneLayerGenerator
 
 WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'reachibilitybottombar.ui'))
 
@@ -110,20 +110,8 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
 
     def calculate(self):
         clear = self.checkBoxRemovePrevious.isChecked()
-        log.debug('isochrones layer name = {}'.format(self.getBasename()))
-
-        try:
-            layer =  QgsProject.instance().mapLayersByName(self.getBasename())[0] # FIXME: we do not consider if there are several layers with the same name here
-            QgsProject.instance().removeMapLayer( layer.id() )
-        except IndexError:
-            log.debug('this layer was not found: {}'.format(self.getBasename()))
-        layer = self.createLayer(self.getBasename())
-        QgsProject.instance().addMapLayer(layer)
-        self.layerSelector.setSelectedLayer(layer)
-
-        if layer is None:
-            pushWarning("Please, select a valid destination layer")
-            return
+        LOG.debug('isochrones layer name = {}'.format(self.getBasename()))
+        #TODO: put here code to generate layers
         try:
             point = self.originSearchBox.valueAsPoint()
         except WrongLocationException as e:
@@ -136,12 +124,12 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
         except Exception as e:
             pushWarning("Invalid intervals")
             return
+        isochroneLayersGenerator = IsochroneLayerGenerator(self.getBasename())
         try:
-            layer.updateRoute(point, intervals, clear)
+            isochroneLayersGenerator.generateIsochrones(point, intervals)
         except Exception as e:
-            logging.error(e, exc_info=True)
-            #TODO more fine-grained error control
-            pushWarning("Could not compute isochrones")
+            pushWarning("could not generate isochrones")
+            raise Exception(e)
 
     def actionToggled(self, toggled):
         if toggled:
