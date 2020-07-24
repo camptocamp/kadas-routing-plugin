@@ -56,10 +56,10 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
         #self.layerSelector.createLayerIfEmpty("Isochrones")
         #self.layout().addWidget(self.layerSelector, 0, 0, 1, 2)
 
-        self.textbox = QLineEdit(self)
-        self.textbox.resize(80,40)
-        self.textbox.setText("NewIsochrones")
-        self.layout().addWidget(self.textbox, 0, 0, 1, 2)
+        self.layerBasenameTextbox = QLineEdit(self)
+        self.layerBasenameTextbox.resize(80,40)
+        self.layerBasenameTextbox.setText("NewIsochrones")
+        self.layout().addWidget(self.layerBasenameTextbox, 0, 0, 1, 2)
 
 
         self.comboBoxVehicles.addItems(vehicles.vehicles)
@@ -116,15 +116,15 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
     def calculate(self):
         clear = self.checkBoxRemovePrevious.isChecked()
         #layer = self.layerSelector.getSelectedLayer()
-        #self.layerSelector.createLayerIfEmpty(self.textbox.text())
-        log.debug('isochrones layer name = {}'.format(self.textbox.text()))
-        
+        #self.layerSelector.createLayerIfEmpty(self.layerBasenameTextbox.text())
+        log.debug('isochrones layer name = {}'.format(self.layerBasenameTextbox.text()))
+
         try:
-            layer =  QgsProject.instance().mapLayersByName(self.textbox.text())[0] # FIXME: we do not consider if there are several layers with the same name here
+            layer =  QgsProject.instance().mapLayersByName(self.layerBasenameTextbox.text())[0] # FIXME: we do not consider if there are several layers with the same name here
             QgsProject.instance().removeMapLayer( layer.id() )
         except IndexError:
-            log.debug('this layer was not found: {}'.format(self.textbox.text()))
-        layer = self.createLayer(self.textbox.text())
+            log.debug('this layer was not found: {}'.format(self.layerBasenameTextbox.text()))
+        layer = self.createLayer(self.layerBasenameTextbox.text())
         QgsProject.instance().addMapLayer(layer)
         self.layerSelector.setSelectedLayer(layer)
 
