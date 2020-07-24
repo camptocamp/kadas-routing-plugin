@@ -50,17 +50,10 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
 
         self.originSearchBox = LocationInputWidget(canvas, locationSymbolPath=iconPath('blue_cross.svg'))
         self.layout().addWidget(self.originSearchBox, 3, 1)
+        # FIXME: I don't know if layerSelector is useful anymore
         self.layerSelector = KadasLayerSelectionWidget(canvas, iface.layerTreeView(),
                                                         lambda x: isinstance(x, IsochronesLayer),
                                                         self.createLayer)
-        #self.layerSelector.createLayerIfEmpty("Isochrones")
-        #self.layout().addWidget(self.layerSelector, 0, 0, 1, 2)
-
-        self.layerBasenameTextbox = QLineEdit(self)
-        self.layerBasenameTextbox.resize(80,40)
-        self.layerBasenameTextbox.setText("NewIsochrones")
-        self.layout().addWidget(self.layerBasenameTextbox, 0, 0, 1, 2)
-
 
         self.comboBoxVehicles.addItems(vehicles.vehicles)
 
@@ -75,6 +68,8 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
 
         self.lineEditIntervals.textChanged.connect(self.intervalChanges)
         self.intervalChanges()
+        self.lineEditBasename.textChanged.connect(self.basenameChanges)
+        self.basenameChanges()
 
         # Update center of map according to selected point
         self.originSearchBox.searchBox.textChanged.connect(self.centerMap)
@@ -115,16 +110,14 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
 
     def calculate(self):
         clear = self.checkBoxRemovePrevious.isChecked()
-        #layer = self.layerSelector.getSelectedLayer()
-        #self.layerSelector.createLayerIfEmpty(self.layerBasenameTextbox.text())
-        log.debug('isochrones layer name = {}'.format(self.layerBasenameTextbox.text()))
+        log.debug('isochrones layer name = {}'.format(self.getBasename()))
 
         try:
-            layer =  QgsProject.instance().mapLayersByName(self.layerBasenameTextbox.text())[0] # FIXME: we do not consider if there are several layers with the same name here
+            layer =  QgsProject.instance().mapLayersByName(self.getBasename())[0] # FIXME: we do not consider if there are several layers with the same name here
             QgsProject.instance().removeMapLayer( layer.id() )
         except IndexError:
-            log.debug('this layer was not found: {}'.format(self.layerBasenameTextbox.text()))
-        layer = self.createLayer(self.layerBasenameTextbox.text())
+            log.debug('this layer was not found: {}'.format(self.getBasename()))
+        layer = self.createLayer(self.getBasename())
         QgsProject.instance().addMapLayer(layer)
         self.layerSelector.setSelectedLayer(layer)
 
@@ -155,6 +148,40 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
             self.setCenterAsSelected()
         else:
             self.originSearchBox.removePin()
+
+    def basenameChanges(self):
+        """Slot when the text on the basename line edit changed.
+
+        It set the text color to red, disable the calculate button,
+        and update the calculate button tooltip.
+        """
+        try:
+            basename = self.getBasename()
+            if basename == '':
+                raise Exception('basename can not be empty')
+            self.lineEditBasename.setStyleSheet("color: black;")
+            self.btnCalculate.setEnabled(True)
+            self.btnCalculate.setToolTip('')
+        except Exception as e:
+            pushMessage(str(e))
+            self.lineEditBasename.setStyleSheet("color: red;")
+            self.btnCalculate.setEnabled(False)
+            self.btnCalculate.setToolTip('Please make sure the basename is correct.')
+
+    def getBasename(self):
+        """Get basename as string
+        """
+        # if self.lineEditBasename.text() == '':
+        #     raise  Exception('basename can not be empty')
+        basenameText = self.lineEditBasename.text()
+        # remove white space
+        basenameText = ''.join(basenameText.split())
+        return str(basenameText)
+
+    def setbasenameToolTip(self):
+        """Set the tool tip for basename line edit based on the current mode."""
+        self.lineEditBasename.setToolTip(
+                'Set basename for the layer.')
 
     def intervalChanges(self):
         """Slot when the text on the interval line edit changed.
