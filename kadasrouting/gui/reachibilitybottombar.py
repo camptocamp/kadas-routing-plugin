@@ -27,7 +27,7 @@ from qgis.core import (
     QgsRectangle
     )
 
-from kadasrouting.core.isochroneslayer import IsochronesLayer, IsochroneLayerGenerator
+from kadasrouting.core.isochroneslayer import IsochronesLayer, IsochroneLayerGenerator, OverwriteError
 
 WIDGET, BASE = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'reachibilitybottombar.ui'))
 
@@ -109,9 +109,8 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
         return layer
 
     def calculate(self):
-        clear = self.checkBoxRemovePrevious.isChecked()
+        overwrite = self.checkBoxRemovePrevious.isChecked()
         LOG.debug('isochrones layer name = {}'.format(self.getBasename()))
-        #TODO: put here code to generate layers
         try:
             point = self.originSearchBox.valueAsPoint()
         except WrongLocationException as e:
@@ -126,7 +125,9 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
             return
         isochroneLayersGenerator = IsochroneLayerGenerator(self.getBasename())
         try:
-            isochroneLayersGenerator.generateIsochrones(point, intervals)
+            isochroneLayersGenerator.generateIsochrones(point, intervals, overwrite)
+        except OverwriteError as e:
+            pushWarning("please change the basename or activate the overwrite checkbox")
         except Exception as e:
             pushWarning("could not generate isochrones")
             raise Exception(e)
@@ -159,14 +160,10 @@ class ReachibilityBottomBar(KadasBottomBar, WIDGET):
     def getBasename(self):
         """Get basename as string
         """
-        # if self.lineEditBasename.text() == '':
-        #     raise  Exception('basename can not be empty')
         basenameText = self.lineEditBasename.text()
-        # remove white space
-        basenameText = ''.join(basenameText.split())
         return str(basenameText)
 
-    def setbasenameToolTip(self):
+    def setBasenameToolTip(self):
         """Set the tool tip for basename line edit based on the current mode."""
         self.lineEditBasename.setToolTip(
                 'Set basename for the layer.')

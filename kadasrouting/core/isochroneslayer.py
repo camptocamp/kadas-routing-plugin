@@ -45,21 +45,39 @@ from kadas.kadascore import KadasPluginLayerType
 
 LOG = logging.getLogger(__name__)
 
+class OverwriteError(Exception):
+    pass
+
 class IsochroneLayerGenerator(object):
-    def __init__(self, basename):
+    def __init__(self, basename, overwrite = True):
         self.setBasename(basename)
         self.valhalla = ValhallaClient()
+        self.setOverwrite(overwrite)
         self.crs = QgsCoordinateReferenceSystem("EPSG:4326")
-        
+
+    def setOverwrite(self, overwrite):
+        """Set overwrite option as bool
+        """
+        if not isinstance(overwrite, bool):
+            raise TypeError('overwrite parameter is of wrong type. Was: {} , but should be "bool"'.format(type(overwrite)))
+        self.overwrite = overwrite
+
+    def getOverwrite(self):
+        return self.overwrite
+
     def setBasename(self, basename):
-        self.basename = basename
+        """Set basename as string
+        """
+        self.basename = str(basename)
 
     def createLayer(self, name):
         layer = IsochronesLayer(name)
         return layer
 
     def getBasename(self):
-        return self.basename
+        """Get basename as string
+        """
+        return str(self.basename)
 
     def setResponse(self, response):
         self.response = response
@@ -73,6 +91,8 @@ class IsochroneLayerGenerator(object):
 
     @staticmethod
     def getFeaturesFromResponse(response):
+        """Return a list of features from a valhalla response object
+        """
         fields = QgsFields()
         fields.append(QgsField("opacity", QVariant.Double))
         fields.append(QgsField("fill", QVariant.String))
@@ -87,7 +107,8 @@ class IsochroneLayerGenerator(object):
         return features
 
     @waitcursor
-    def generateIsochrones(self, point, intervals):
+    def generateIsochrones(self, point, intervals, overwrite = True):
+        self.setOverwrite(overwrite)
         response = self.valhalla.isochrones(point, intervals)
         features = self.getFeaturesFromResponse(response)
         for feature in features:
@@ -96,7 +117,10 @@ class IsochroneLayerGenerator(object):
             layername = '{} min - {}'.format(intervals.pop(), self.getBasename())
             try:
                 layer =  QgsProject.instance().mapLayersByName(layername)[0] # FIXME: we do not consider if there are several layers with the same name here
-                QgsProject.instance().removeMapLayer( layer.id() )
+                if self.getOverwrite():
+                    QgsProject.instance().removeMapLayer( layer.id() )
+                else:
+                    raise OverwriteError('layer {} already exists and overwrite is {}'.format(layername, self.getOverwrite()))
             except IndexError:
                 LOG.debug('this layer was not found: {}'.format(layername))
             layer = self.createLayer(layername)
