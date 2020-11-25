@@ -51,7 +51,7 @@ from kadas.kadasgui import (
 
 from kadasrouting.utilities import formatdist, pushMessage, iconPath
 from kadasrouting.core.optimalroutelayer import OptimalRouteLayer, NotInRouteException
-from kadasrouting.gui.gps import getMockupGpsConnection
+from kadasrouting.gui.gps import getMockupGpsConnection, getGpsConnection
 from kadasrouting.core import vehicles
 from kadasrouting.utilities import tr
 
@@ -209,8 +209,8 @@ class NavigationPanel(BASE, WIDGET):
         self.stopNavigation()
 
     def updateNavigationInfo(self, gpsinfo):
-        # prevent infinite loop for mocked gps
-        self.gpsConnection.statusChanged.disconnect(self.updateNavigationInfo)
+        # FIXME: prevent infinite loop for mocked gps
+        # self.gpsConnection.statusChanged.disconnect(self.updateNavigationInfo)
         self.currentGpsInformation = gpsinfo
         if gpsinfo is None:
             self.setMessage(self.tr("Cannot connect to GPS"))
@@ -396,7 +396,7 @@ class NavigationPanel(BASE, WIDGET):
         self.warningShown = False
 
         self.setMessage(self.tr("Connecting to GPS..."))
-        self.gpsConnection = getMockupGpsConnection()
+        self.gpsConnection = getGpsConnection()
         if self.gpsConnection is None:
             self.setMessage(self.tr("Cannot connect to GPS"))
         else:
