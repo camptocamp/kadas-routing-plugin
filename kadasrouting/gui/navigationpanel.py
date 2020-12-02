@@ -51,7 +51,7 @@ from kadas.kadasgui import (
 
 from kadasrouting.utilities import formatdist, pushMessage, iconPath
 from kadasrouting.core.optimalroutelayer import OptimalRouteLayer, NotInRouteException
-from kadasrouting.gui.gps import getMockupGpsConnection, getGpsConnection
+from kadasrouting.gui.gps import getGpsConnection
 from kadasrouting.core import vehicles
 from kadasrouting.utilities import tr
 
