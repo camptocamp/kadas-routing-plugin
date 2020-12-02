@@ -6,6 +6,7 @@ from kadasrouting.utilities import waitcursor
 
 LOG = logging.getLogger(__name__)
 
+
 @waitcursor
 def getGpsConnection():
     gpsConnectionList = QgsApplication.gpsConnectionRegistry().connectionList()
