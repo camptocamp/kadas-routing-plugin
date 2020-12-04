@@ -209,8 +209,6 @@ class NavigationPanel(BASE, WIDGET):
         self.stopNavigation()
 
     def updateNavigationInfo(self, gpsinfo):
-        # FIXME: prevent infinite loop for mocked gps
-        # self.gpsConnection.statusChanged.disconnect(self.updateNavigationInfo)
         self.currentGpsInformation = gpsinfo
         if gpsinfo is None:
             self.setMessage(self.tr("Cannot connect to GPS"))
@@ -226,8 +224,6 @@ class NavigationPanel(BASE, WIDGET):
         self.iface.mapCanvas().setRotation(-gpsinfo.direction)
         self.iface.mapCanvas().refresh()
         self.rubberband.reset(QgsWkbTypes.LineGeometry)
-
-        self.gpsConnection.statusChanged.connect(self.updateNavigationInfo)
 
         if isinstance(layer, QgsVectorLayer) and layer.geometryType() == QgsWkbTypes.LineGeometry:
             feature = next(layer.getFeatures(), None)
