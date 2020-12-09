@@ -311,7 +311,7 @@ class OptimalRouteLayer(KadasItemLayer):
                     if message.endswith('.'):
                         message = message[:-1]
                     if message2.endswith('.'):
-                        message2 = message[:-1]
+                        message2 = message2[:-1]
 
                     maneuver = dict(dist=formatdist(distance_to_next), message=message, icon=icon,
                                     dist2=formatdist(distance_to_next2), message2=message2, icon2=icon2,

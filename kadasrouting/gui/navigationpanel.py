@@ -65,7 +65,7 @@ route_html_template = '''
 <p>
 <img src="{icon}" alt="" width="100" height="100" style="display: block; margin-left: auto; margin-right: auto;" />
 </p>
-<h3 style="text-align: center;"><span style="color: #ffffff;">{dist}<br/>{message}</span></h3>
+<h2 style="text-align: center;"><span style="color: #ffffff;">{dist}<br/>{message}</span></h>
 </td>
 </tr>
 <tr>
