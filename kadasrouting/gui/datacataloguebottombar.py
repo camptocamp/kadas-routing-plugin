@@ -140,20 +140,8 @@ class DataCatalogueBottomBar(KadasBottomBar, WIDGET):
         self.reloadRepository()
 
     def populateList(self):
-        if os.path.exists(DEFAULT_DATA_TILES_PATH):
-            defaultStatus = DataCatalogueClient.UP_TO_DATE
-        else:
-            defaultStatus = DataCatalogueClient.NOT_INSTALLED
-        # Add default data tile first
-        defaultData = {
-                'status': defaultStatus,
-                'title': self.tr('Switzerland - Default'),
-                'id': 'default',
-                'modified': 1
-            }
-        dataItems = [defaultData]
         try:
-            dataItems.extend(self.dataCatalogueClient.getAvailableTiles())
+            dataItems = self.dataCatalogueClient.getAvailableTiles()
         except Exception as e:
             pushWarning('Cannot get tiles from the URL because %s ' % str(e))
             return False
