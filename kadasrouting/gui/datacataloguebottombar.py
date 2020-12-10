@@ -21,7 +21,6 @@ from kadasrouting.utilities import pushWarning, pushMessage, icon
 from kadasrouting.core.datacatalogueclient import (
     dataCatalogueClient,
     DataCatalogueClient,
-    DEFAULT_DATA_TILES_PATH,
     DEFAULT_REPOSITORY_URLS,
     DEFAULT_ACTIVE_REPOSITORY_URL
 )
