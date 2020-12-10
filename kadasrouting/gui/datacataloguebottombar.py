@@ -19,7 +19,6 @@ from kadas.kadasgui import KadasBottomBar
 
 from kadasrouting.utilities import pushWarning, pushMessage, icon
 from kadasrouting.core.datacatalogueclient import (
-    dataCatalogueClient,
     DataCatalogueClient,
     DEFAULT_DATA_TILES_PATH,
     DEFAULT_REPOSITORY_URLS,
@@ -85,7 +84,7 @@ class DataItemWidget(QFrame):
     def buttonClicked(self):
         status = self.data['status']
         if status == DataCatalogueClient.UP_TO_DATE:
-            ret = dataCatalogueClient.uninstall(self.data["id"])
+            ret = self.dataCatalogueClient.uninstall(self.data["id"])
             if not ret:
                 pushWarning(
                     self.tr("Cannot remove previous version of the {name} map package").format(
