@@ -56,7 +56,7 @@ class DataItemWidget(QFrame):
         layout.addWidget(self.button)
         self.setLayout(layout)
         self.setStyleSheet("QFrame { background-color: white; }")
-        if QgsSettings().value("/kadas/activeValhallaTilesID", 'default') == self.data['id']:
+        if QgsSettings().value("/kadasrouting/activeValhallaTilesID", 'default') == self.data['id']:
             self.radioButton.setChecked(True)
 
     def updateContent(self):
@@ -109,7 +109,7 @@ class DataItemWidget(QFrame):
     def radioButtonToggled(self):
         if self.radioButton.isChecked():
             # Update Kadas setting
-            QgsSettings().setValue("/kadas/activeValhallaTilesID", self.data['id'])
+            QgsSettings().setValue("/kadasrouting/activeValhallaTilesID", self.data['id'])
             pushMessage(self.tr('Active map package is set to {tile}').format(tile=self.data['title']))
 
 
