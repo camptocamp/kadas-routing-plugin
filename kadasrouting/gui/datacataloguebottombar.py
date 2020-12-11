@@ -20,7 +20,6 @@ from kadas.kadasgui import KadasBottomBar
 from kadasrouting.utilities import pushWarning, pushMessage, icon
 from kadasrouting.core.datacatalogueclient import (
     DataCatalogueClient,
-    DEFAULT_DATA_TILES_PATH,
     DEFAULT_REPOSITORY_URLS,
     DEFAULT_ACTIVE_REPOSITORY_URL
 )
@@ -55,7 +54,7 @@ class DataItemWidget(QFrame):
         layout.addWidget(self.button)
         self.setLayout(layout)
         self.setStyleSheet("QFrame { background-color: white; }")
-        if QgsSettings().value("/kadas/activeValhallaTilesID", 'default') == self.data['id']:
+        if QgsSettings().value("/kadasrouting/activeValhallaTilesID", 'default') == self.data['id']:
             self.radioButton.setChecked(True)
 
     def updateContent(self):
@@ -108,7 +107,7 @@ class DataItemWidget(QFrame):
     def radioButtonToggled(self):
         if self.radioButton.isChecked():
             # Update Kadas setting
-            QgsSettings().setValue("/kadas/activeValhallaTilesID", self.data['id'])
+            QgsSettings().setValue("/kadasrouting/activeValhallaTilesID", self.data['id'])
             pushMessage(self.tr('Active map package is set to {tile}').format(tile=self.data['title']))
 
 
@@ -139,20 +138,8 @@ class DataCatalogueBottomBar(KadasBottomBar, WIDGET):
         self.reloadRepository()
 
     def populateList(self):
-        if os.path.exists(DEFAULT_DATA_TILES_PATH):
-            defaultStatus = DataCatalogueClient.UP_TO_DATE
-        else:
-            defaultStatus = DataCatalogueClient.NOT_INSTALLED
-        # Add default data tile first
-        defaultData = {
-                'status': defaultStatus,
-                'title': self.tr('Switzerland - Default'),
-                'id': 'default',
-                'modified': 1
-            }
-        dataItems = [defaultData]
         try:
-            dataItems.extend(self.dataCatalogueClient.getAvailableTiles())
+            dataItems = self.dataCatalogueClient.getAvailableTiles()
         except Exception as e:
             pushWarning('Cannot get tiles from the URL because %s ' % str(e))
             return False
