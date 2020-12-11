@@ -63,7 +63,7 @@ class DataItemWidget(QFrame):
             DataCatalogueClient.UPDATABLE: [self.tr("Update"), "orange", "bold"],
             DataCatalogueClient.UP_TO_DATE: [self.tr("Remove"), "green", "bold"],
             DataCatalogueClient.LOCAL_ONLY: [self.tr("Remove"), "green", "bold italic"],
-            DataCatalogueClient.DELETED: [self.tr("N/A"), "black", "italic"],
+            DataCatalogueClient.LOCAL_DELETED: [self.tr("N/A"), "black", "italic"],
         }
         status = self.data['status']
         date = datetime.datetime.fromtimestamp(self.data['modified'] / 1e3).strftime("%d-%m-%Y")
@@ -73,20 +73,16 @@ class DataItemWidget(QFrame):
         if status == DataCatalogueClient.LOCAL_ONLY:
             self.button.setToolTip(self.tr(
                 'This map package is local only, if you delete it you can not download it from the selected URL'))
-        if status == DataCatalogueClient.DELETED:
+        if status == DataCatalogueClient.LOCAL_DELETED:
             self.button.setEnabled(False)
             self.button.hide()
         # Add addditional behaviour for radio button according to installation status
-        if status == DataCatalogueClient.NOT_INSTALLED or status == DataCatalogueClient.DELETED:
+        if status == DataCatalogueClient.NOT_INSTALLED or status == DataCatalogueClient.LOCAL_DELETED:
             self.radioButton.setDisabled(True)
             self.radioButton.setToolTip(self.tr('Map package has to be installed first'))
         else:
             self.radioButton.setDisabled(False)
             self.radioButton.setToolTip('')
-        # Special handler for default data
-        if self.data['id'] == 'default':
-            self.button.setEnabled(False)
-            self.button.setToolTip(self.tr('The default map package can not be removed '))
 
     def buttonClicked(self):
         status = self.data['status']
@@ -109,7 +105,7 @@ class DataItemWidget(QFrame):
             else:
                 pushMessage(self.tr("Map package {name} has been successfully deleted ").format(
                     name=self.data['title']))
-                self.data['status'] = DataCatalogueClient.DELETED
+                self.data['status'] = DataCatalogueClient.LOCAL_DELETED
         else:
             ret = self.dataCatalogueClient.install(self.data)
             if not ret:

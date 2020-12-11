@@ -13,9 +13,6 @@ from kadasrouting.utilities import appDataDir, waitcursor, pushWarning
 
 LOG = logging.getLogger(__name__)
 
-# Obtained from Valhalla installer
-DEFAULT_DATA_TILES_PATH = r'C:/Program Files/KadasAlbireo/share/kadas/routing/default'
-
 DEFAULT_REPOSITORY_URLS = [
     'https://ch-milgeo.maps.arcgis.com/sharing/rest',
     'https://geoinfo-kadas.op.intra2.admin.ch/portal/sharing/rest'
@@ -27,11 +24,11 @@ DEFAULT_ACTIVE_REPOSITORY_URL = DEFAULT_REPOSITORY_URLS[0]
 class DataCatalogueClient():
 
     # Status of data tiles
-    NOT_INSTALLED = 0
-    UPDATABLE = 1
-    UP_TO_DATE = 2
-    LOCAL_ONLY = 3
-    DELETED = 4
+    NOT_INSTALLED = 0  # Available on remote repository, but not in local file system
+    UPDATABLE = 1  # There is a local copy, but the one in remote repository is newer
+    UP_TO_DATE = 2  # There is a local copy and is up to date compared to the one in remote repository
+    LOCAL_ONLY = 3  # The data is only available locally
+    LOCAL_DELETED = 4  # The local only data is deleted
 
     def __init__(self, url=None):
         self.url = url or DEFAULT_ACTIVE_REPOSITORY_URL
