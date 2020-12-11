@@ -139,7 +139,7 @@ class DataCatalogueBottomBar(KadasBottomBar, WIDGET):
 
     def populateList(self):
         try:
-            dataItems = self.dataCatalogueClient.getAvailableTiles()
+            dataItems = self.dataCatalogueClient.getRemoteTiles()
         except Exception as e:
             pushWarning('Cannot get tiles from the URL because %s ' % str(e))
             return False

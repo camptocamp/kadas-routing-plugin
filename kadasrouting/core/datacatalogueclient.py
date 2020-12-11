@@ -43,7 +43,7 @@ class DataCatalogueClient():
             LOG.debug('metadata file is failed to read: %s' % e)
             return None
 
-    def getAvailableTiles(self):
+    def getRemoteTiles(self):
         query = QUrlQuery()
         url = QUrl(f'{self.url}/search')
         query.addQueryItem('q', 'owner:%22geosupport.fsta%22%20tags:%22valhalla%22')
