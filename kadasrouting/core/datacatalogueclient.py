@@ -31,6 +31,7 @@ class DataCatalogueClient():
     UPDATABLE = 1
     UP_TO_DATE = 2
     LOCAL_ONLY = 3
+    DELETED = 4
 
     def __init__(self, url=None):
         self.url = url or DEFAULT_ACTIVE_REPOSITORY_URL
@@ -63,7 +64,6 @@ class DataCatalogueClient():
                 all_tiles.append(local_tile)
 
         return all_tiles
-
 
     def getRemoteTiles(self):
         query = QUrlQuery()

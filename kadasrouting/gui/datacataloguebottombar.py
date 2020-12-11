@@ -62,18 +62,22 @@ class DataItemWidget(QFrame):
             DataCatalogueClient.NOT_INSTALLED: [self.tr("Install"), "black", "bold"],
             DataCatalogueClient.UPDATABLE: [self.tr("Update"), "orange", "bold"],
             DataCatalogueClient.UP_TO_DATE: [self.tr("Remove"), "green", "bold"],
-            DataCatalogueClient.LOCAL_ONLY: [self.tr("Remove"), "green", "bold italic"]
+            DataCatalogueClient.LOCAL_ONLY: [self.tr("Remove"), "green", "bold italic"],
+            DataCatalogueClient.DELETED: [self.tr("N/A"), "black", "italic"],
         }
         status = self.data['status']
         date = datetime.datetime.fromtimestamp(self.data['modified'] / 1e3).strftime("%d-%m-%Y")
         self.radioButton.setText(f"{self.data['title']} [{date}]")
         self.radioButton.setStyleSheet(f"color: {statuses[status][1]}; font: {statuses[status][2]}")
         self.button.setText(statuses[status][0])
-        if statuses[status] == DataCatalogueClient.LOCAL_ONLY:
+        if status == DataCatalogueClient.LOCAL_ONLY:
             self.button.setToolTip(self.tr(
                 'This map package is local only, if you delete it you can not download it from the selected URL'))
+        if status == DataCatalogueClient.DELETED:
+            self.button.setEnabled(False)
+            self.button.hide()
         # Add addditional behaviour for radio button according to installation status
-        if status == DataCatalogueClient.NOT_INSTALLED:
+        if status == DataCatalogueClient.NOT_INSTALLED or status == DataCatalogueClient.DELETED:
             self.radioButton.setDisabled(True)
             self.radioButton.setToolTip(self.tr('Map package has to be installed first'))
         else:
@@ -96,6 +100,16 @@ class DataItemWidget(QFrame):
                 pushMessage(self.tr("Map package {name} has been successfully deleted ").format(
                     name=self.data['title']))
                 self.data['status'] = DataCatalogueClient.NOT_INSTALLED
+        elif status == DataCatalogueClient.LOCAL_ONLY:
+            ret = self.dataCatalogueClient.uninstall(self.data["id"])
+            if not ret:
+                pushWarning(
+                    self.tr("Cannot remove previous version of the {name} map package").format(
+                        name=self.data['title']))
+            else:
+                pushMessage(self.tr("Map package {name} has been successfully deleted ").format(
+                    name=self.data['title']))
+                self.data['status'] = DataCatalogueClient.DELETED
         else:
             ret = self.dataCatalogueClient.install(self.data)
             if not ret:
