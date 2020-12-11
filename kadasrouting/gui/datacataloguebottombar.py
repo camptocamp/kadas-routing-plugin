@@ -59,15 +59,19 @@ class DataItemWidget(QFrame):
 
     def updateContent(self):
         statuses = {
-            DataCatalogueClient.NOT_INSTALLED: [self.tr("Install"), "black"],
-            DataCatalogueClient.UPDATABLE: [self.tr("Update"), "orange"],
-            DataCatalogueClient.UP_TO_DATE: [self.tr("Remove"), "green"]
+            DataCatalogueClient.NOT_INSTALLED: [self.tr("Install"), "black", "bold"],
+            DataCatalogueClient.UPDATABLE: [self.tr("Update"), "orange", "bold"],
+            DataCatalogueClient.UP_TO_DATE: [self.tr("Remove"), "green", "bold"],
+            DataCatalogueClient.LOCAL_ONLY: [self.tr("Remove"), "green", "bold italic"]
         }
         status = self.data['status']
         date = datetime.datetime.fromtimestamp(self.data['modified'] / 1e3).strftime("%d-%m-%Y")
         self.radioButton.setText(f"{self.data['title']} [{date}]")
-        self.radioButton.setStyleSheet(f"color: {statuses[status][1]}; font: bold")
+        self.radioButton.setStyleSheet(f"color: {statuses[status][1]}; font: {statuses[status][2]}")
         self.button.setText(statuses[status][0])
+        if statuses[status] == DataCatalogueClient.LOCAL_ONLY:
+            self.button.setToolTip(self.tr(
+                'This map package is local only, if you delete it you can not download it from the selected URL'))
         # Add addditional behaviour for radio button according to installation status
         if status == DataCatalogueClient.NOT_INSTALLED:
             self.radioButton.setDisabled(True)
@@ -138,15 +142,7 @@ class DataCatalogueBottomBar(KadasBottomBar, WIDGET):
         self.reloadRepository()
 
     def populateList(self):
-        try:
-            dataItems = self.dataCatalogueClient.getRemoteTiles()
-        except Exception as e:
-            pushWarning('Cannot get tiles from the URL because %s ' % str(e))
-            return False
-
-        localTiles = self.dataCatalogueClient.getLocalTiles()
-        LOG.debug(localTiles)
-        LOG.debug(dataItems)
+        dataItems = self.dataCatalogueClient.getTiles()
 
         # Clear first before populating (in case failed request, the list is still there)
         self.listWidget.clear()
