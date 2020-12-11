@@ -144,6 +144,10 @@ class DataCatalogueBottomBar(KadasBottomBar, WIDGET):
             pushWarning('Cannot get tiles from the URL because %s ' % str(e))
             return False
 
+        localTiles = self.dataCatalogueClient.getLocalTiles()
+        LOG.debug(localTiles)
+        LOG.debug(dataItems)
+
         # Clear first before populating (in case failed request, the list is still there)
         self.listWidget.clear()
         for data in dataItems:

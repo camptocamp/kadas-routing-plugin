@@ -69,6 +69,25 @@ class DataCatalogueClient():
             tiles.append(tile)
         return tiles
 
+    @staticmethod
+    def getLocalTiles():
+        folder_data = DataCatalogueClient.folderData()
+        data_dirs = [f.path for f in os.scandir(folder_data) if f.is_dir()]
+        LOG.debug(data_dirs)
+        local_tiles = []
+        for data_dir in data_dirs:
+            LOG.debug(type(data_dir))
+            try:
+                metadata_file = os.path.join(data_dir, "metadata")
+                LOG.debug(metadata_file)
+                with open(metadata_file) as f:
+                    tile = json.load(f)
+                local_tiles.append(tile)
+            except Exception as e:
+                LOG.debug(e)
+
+        return local_tiles
+
     def install(self, data):
         itemid = data["id"]
         if self._downloadAndUnzip(itemid):
@@ -110,6 +129,8 @@ class DataCatalogueClient():
 
     @staticmethod
     def folderForDataItem(itemid):
-        if itemid == 'default':
-            return DEFAULT_DATA_TILES_PATH
-        return os.path.join(appDataDir(), "tiles", itemid)
+        return os.path.join(DataCatalogueClient.folderData(), itemid)
+
+    @staticmethod
+    def folderData():
+        return os.path.join(appDataDir(), "tiles")
