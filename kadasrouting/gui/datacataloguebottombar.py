@@ -76,6 +76,8 @@ class DataItemWidget(QFrame):
         if status == DataCatalogueClient.LOCAL_DELETED:
             self.button.setEnabled(False)
             self.button.hide()
+            self.radioButton.setStyleSheet(
+                f"color: {statuses[status][1]}; font: {statuses[status][2]}; text-decoration: line-through")
         # Add addditional behaviour for radio button according to installation status
         if status == DataCatalogueClient.NOT_INSTALLED or status == DataCatalogueClient.LOCAL_DELETED:
             self.radioButton.setDisabled(True)
