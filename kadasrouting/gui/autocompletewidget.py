@@ -130,22 +130,26 @@ class SuggestCompletion(QObject):
         if text:
             is_offline = QgsSettings().value("/kadas/isOffline")
             LOG.debug('is_offline %s' % is_offline)
+            urls = []
             if is_offline:
-                url = QgsSettings().value(
-                    "search/locationofflinesearchurl", "http://localhost:5000/SearchServerCh")
+                urls.append(QgsSettings().value(
+                    "search/locationofflinesearchurl", "http://localhost:5000/SearchServerCh"))
+                urls.append(QgsSettings().value(
+                    "search/worldlocationofflinesearchurl", "http://localhost:5000/SearchServerWld"))
             else:
-                url = QgsSettings().value(
-                    "search/locationsearchurl", "https://api3.geo.admin.ch/rest/services/api/SearchServer")
-            url = QUrl(url)
-            query = QUrlQuery()
-            query.addQueryItem("sr", "2056")
-            query.addQueryItem("searchText", text)
-            query.addQueryItem("lang", "en")
-            query.addQueryItem("type", "locations")
-            query.addQueryItem("limit", "10")
-            url.setQuery(query)
-            LOG.debug(url)
-            self._network_manager.get(QNetworkRequest(url))
+                urls.append(QgsSettings().value(
+                    "search/locationsearchurl", "https://api3.geo.admin.ch/rest/services/api/SearchServer"))
+            for url in urls:
+                url = QUrl(url)
+                query = QUrlQuery()
+                query.addQueryItem("sr", "2056")
+                query.addQueryItem("searchText", text)
+                query.addQueryItem("lang", "en")
+                query.addQueryItem("type", "locations")
+                query.addQueryItem("limit", "10")
+                url.setQuery(query)
+                LOG.debug(url)
+                self._network_manager.get(QNetworkRequest(url))
 
     def prevent_suggest(self):
         self._timer.stop()
