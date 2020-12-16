@@ -11,6 +11,51 @@ from qgis.core import QgsSettings
 from kadasrouting.utilities import strip_tags
 
 LOG = logging.getLogger(__name__)
+            
+SEARCH_URLS = [
+    {'url' = QgsSettings().value("search/locationofflinesearchurl", "http://localhost:5000/SearchServerCh"), 'offline': True},
+    {'url' = QgsSettings().value("search/worldlocationofflinesearchurl", "http://localhost:5000/SearchServerWld"),'offline': True},
+    {'url' = QgsSettings().value("search/locationsearchurl", "https://api3.geo.admin.ch/rest/services/api/SearchServer")'offline': False}]
+
+class SuggestionContent(QObject):
+    def __init__(self, parent, urlDict):
+        QObject.__init__(self, parent)
+        self._parent = parent
+        self.url = urlDict['url']
+        self.offline = urlDict['offline']
+
+        # network manager
+        self._network_manager = QNetworkAccessManager(self)
+
+        # signal and slot
+        self._popup.installEventFilter(self)
+        self._popup.itemClicked.connect(self.done_completion)
+        self._timer.timeout.connect(self.auto_suggest)
+        self._editor.textEdited.connect(self._timer.start)
+        self._network_manager.finished.connect(self.handle_network_data)
+    
+    def getOffline(self):
+        return self.offline
+    
+    def auto_suggest(self, text):
+        if text:
+            is_offline = QgsSettings().value("/kadas/isOffline")
+            LOG.debug('is_offline %s' % is_offline)
+            
+
+            url = QUrl(self.url)
+            query = QUrlQuery()
+            query.addQueryItem("sr", "2056")
+            query.addQueryItem("searchText", text)
+            query.addQueryItem("lang", "en")
+            query.addQueryItem("type", "locations")
+            query.addQueryItem("limit", "10")
+            url.setQuery(query)
+            LOG.debug(url)
+            self._network_manager.get(QNetworkRequest(url))
+
+
+
 
 
 class SuggestCompletion(QObject):
