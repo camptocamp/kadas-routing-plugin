@@ -16,8 +16,6 @@ from PyQt5.QtCore import (
     Qt,
     QSize,
     QSettings,
-    pyqtSignal,
-    QObject,
     QTimer
 )
 
@@ -181,7 +179,7 @@ class NavigationPanel(BASE, WIDGET):
         self.waypointWidgets = []
         self.optimalRoutesCache = {}
 
-        self.timer=QTimer()
+        self.timer = QTimer()
 
         self.rubberband = QgsRubberBand(iface.mapCanvas(), QgsWkbTypes.LineGeometry)
         self.rubberband.setStrokeColor(QColor(150, 0, 0))
@@ -232,8 +230,8 @@ class NavigationPanel(BASE, WIDGET):
         canvasPoint = transform.transform(point)
         self.centerPin.setPosition(KadasItemPos(point.x(), point.y()))
         self.iface.mapCanvas().setCenter(canvasPoint)
-        # stop rotating the map like a crazy when the user is almost still, 
-        # i.e. rotate only if we move faster than 1m/s 
+        # stop rotating the map like a crazy when the user is almost still,
+        # i.e. rotate only if we move faster than 1m/s
         if gpsinfo.speed > 1.0:
             self.iface.mapCanvas().setRotation(-gpsinfo.direction)
         self.iface.mapCanvas().refresh()
