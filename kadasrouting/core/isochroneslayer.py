@@ -1,7 +1,7 @@
 import json
 import logging
 
-from PyQt5.QtCore import QVariant, QTextCodec
+from PyQt5.QtCore import QTextCodec
 from PyQt5.QtGui import QColor
 
 from kadasrouting.utilities import waitcursor, tr
@@ -14,9 +14,10 @@ from qgis.core import (
     QgsSingleSymbolRenderer,
     QgsFeature,
     QgsJsonUtils,
-    QgsFields,
-    QgsField,
-    QgsVectorLayer
+    QgsVectorLayer,
+    QgsGeometry,
+    QgsSvgMarkerSymbolLayer,
+    QgsMarkerSymbolLayer
 )
 
 LOG = logging.getLogger(__name__)
@@ -32,18 +33,9 @@ valhalla = ValhallaClient.getInstance()
 def getFeaturesFromResponse(response):
     """Return a list of features from a valhalla response object
     """
-    fields = QgsFields()
-    fields.append(QgsField("opacity", QVariant.Double))
-    fields.append(QgsField("fill", QVariant.String))
-    fields.append(QgsField("fillOpacity", QVariant.Double))
-    fields.append(QgsField("fill-opacity", QVariant.Double))
-    # FIXME: in fact, due to a bug in qgis parser, we cannot use this field
-    fields.append(QgsField("contour", QVariant.Int))
-    fields.append(QgsField("color", QVariant.String))
-    fields.append(QgsField("fillColor", QVariant.String))
     codec = QTextCodec.codecForName("UTF-8")
+    fields = QgsJsonUtils.stringToFields(json.dumps(response), codec)
     features = QgsJsonUtils.stringToFeatureList(json.dumps(response), fields, codec)
-    # LOG.debug('features : {}'.format(features))
     return features
 
 
@@ -93,3 +85,35 @@ def generateIsochrones(point, profile, costingOptions, intervals, colors, basena
         symbol.setColor(fillColor)
         symbol.symbolLayer(0).setStrokeColor(outlineColor)
         layer.setRenderer(renderer)
+
+    # Add center of reachability
+    center_point_layer_name = tr('Center of {basename}').format(basename=basename)
+    try:
+        existinglayer = QgsProject.instance().mapLayersByName(center_point_layer_name)[0]
+        if overwrite:
+            QgsProject.instance().removeMapLayer(existinglayer.id())
+        else:
+            raise OverwriteError(tr(
+                "layer {layername} already exists and overwrite is {overwrite}").format(
+                    layername=center_point_layer_name, overwrite=overwrite
+                )
+            )
+    except IndexError:
+        LOG.debug("this layer was not found: {}".format(center_point_layer_name))
+
+    center_point = QgsVectorLayer(
+        "Point?crs=epsg:4326",
+        center_point_layer_name,
+        "memory",
+    )
+    pr = center_point.dataProvider()
+    qgsfeature = QgsFeature()
+    qgsfeature.setGeometry(QgsGeometry.fromPointXY(point))
+    pr.addFeatures([qgsfeature])
+    # symbology
+    path = ":/kadas/icons/pin_red"
+    symbol = QgsSvgMarkerSymbolLayer(path)
+    symbol.setSize(10)
+    symbol.setVerticalAnchorPoint(QgsMarkerSymbolLayer.Bottom)
+    center_point.renderer().symbol().changeSymbolLayer(0, symbol)
+    QgsProject.instance().addMapLayer(center_point)

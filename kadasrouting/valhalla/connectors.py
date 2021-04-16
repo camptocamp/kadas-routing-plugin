@@ -11,7 +11,7 @@ from qgis.core import QgsSettings
 
 from kadasrouting.exceptions import Valhalla400Exception
 from kadasrouting.utilities import localeName, appDataDir, pushWarning
-from kadasrouting.core.datacatalogueclient import dataCatalogueClient
+from kadasrouting.core.datacatalogueclient import DataCatalogueClient
 
 LOG = logging.getLogger(__name__)
 
@@ -81,17 +81,21 @@ class ConsoleConnector(Connector):
     def _valhallaExecutablePath(self):
         kadasFolder = os.path.join(os.environ['PROGRAMFILES'], 'KadasAlbireo')
         defaultValhallaExeDir = os.path.join(kadasFolder, 'opt', 'routing')
-        valhallaPath = QgsSettings().value("/kadas/valhalla_exe_dir", defaultValhallaExeDir)
+        valhallaPath = QgsSettings().value("/kadasrouting/valhalla_exe_dir", defaultValhallaExeDir)
         return os.path.join(valhallaPath, "valhalla_service.exe")
 
     def _execute(self, action, request):
         defaultValhallaExeDir = r'C:/Program Files/KadasAlbireo/opt/routing'
-        valhallaPath = QgsSettings().value("/kadas/valhalla_exe_dir", defaultValhallaExeDir)
+        valhallaPath = QgsSettings().value("/kadasrouting/valhalla_exe_dir", defaultValhallaExeDir)
         valhallaExecutable = os.path.join(valhallaPath, "valhalla_service.exe")
 
-        activeValhallaTilesID = QgsSettings().value("/kadas/activeValhallaTilesID", 'default')
+        activeValhallaTilesID = QgsSettings().value("/kadasrouting/activeValhallaTilesID")
 
-        valhallaTilesDir = os.path.join(dataCatalogueClient.folderForDataItem(activeValhallaTilesID), 'valhalla_tiles')
+        if not activeValhallaTilesID:
+            message = self.tr('No map package selected. Please open data catalogue, and select a map package.')
+            raise Exception(message)
+
+        valhallaTilesDir = os.path.join(DataCatalogueClient.folderForDataItem(activeValhallaTilesID), 'valhalla_tiles')
         # Needed since it will be stored in a json file
         valhallaTilesDir = valhallaTilesDir.replace('\\', '/')
         LOG.debug('using tiles in %s' % valhallaTilesDir)

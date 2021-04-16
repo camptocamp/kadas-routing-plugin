@@ -44,7 +44,7 @@ Currently, the installation only available from this repository.
 
    For example (using [Virtual Box](https://www.virtualbox.org/)):
    ```bash
-   mklink /D "\\VBOXSVR\kadas-routing-plugin\kadasrouting" "C:\Users\fclementi\AppData\Roaming\Kadas\KadasMil\profiles\default\python\plugins\kadasrouting"
+   mklink /D "C:\Users\fclementi\AppData\Roaming\Kadas\KadasMil\profiles\default\python\plugins\kadasrouting" "\\VBOXSVR\kadas-routing-plugin\kadasrouting" 
    ```
 
 **Note**
@@ -83,6 +83,9 @@ This plugin support 4 languages (DE, FR, IT, EN). The translation process is don
 
 See more about how to do the translation on this [wiki](https://github.com/camptocamp/kadas-routing-plugin/wiki/Internationalisation).
 
+### Updating data
+
+Vehicles data used by the plugin can be updated by replacing the ``resources/vehicles.csv`` file, provided that the new file has the same table structure.
 
 ### Credit
 
