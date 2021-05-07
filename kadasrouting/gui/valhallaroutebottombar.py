@@ -1,3 +1,4 @@
+import os
 import logging
 import json
 
@@ -14,6 +15,7 @@ from kadasrouting.gui.locationinputwidget import (
     WrongLocationException,
 )
 from kadasrouting.core import vehicles
+from kadasrouting.core.canvaslayersaver import CanvasLayerSaver
 from kadasrouting.utilities import iconPath, pushWarning, transformToWGS
 
 from qgis.utils import iface
@@ -30,6 +32,10 @@ from kadasrouting.gui.drawpolygonmaptool import DrawPolygonMapTool
 
 AVOID_AREA_COLOR = QColor(255, 0, 0)
 LOG = logging.getLogger(__name__)
+
+AVOID_AREA_STYLE = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "resources", "avoid_area.qml"
+)
 
 
 class ValhallaRouteBottomBar(KadasBottomBar):
@@ -85,6 +91,7 @@ class ValhallaRouteBottomBar(KadasBottomBar):
         self.btnReverse.clicked.connect(self.reverse)
         self.btnNavigate.clicked.connect(self.navigate)
         self.btnAreasToAvoidClear.clicked.connect(self.clearAreasToAvoid)
+        self.btnAreasToAvoidSave.clicked.connect(self.saveCanvasAreasToAvoidLayer)
         self.btnAreasToAvoidFromCanvas.toggled.connect(self.setPolygonDrawingMapTool)
 
         iface.mapCanvas().mapToolSet.connect(self.mapToolSet)
@@ -125,6 +132,7 @@ class ValhallaRouteBottomBar(KadasBottomBar):
             self.radioAreasToAvoidPolygon.isChecked()
         )
         self.btnAreasToAvoidClear.setEnabled(self.radioAreasToAvoidPolygon.isChecked())
+        self.btnAreasToAvoidSave.setEnabled(self.radioAreasToAvoidPolygon.isChecked())
         if self.radioAreasToAvoidPolygon.isChecked():
             if self.areasToAvoid:
                 for geometry in self.areasToAvoid:
@@ -168,6 +176,16 @@ class ValhallaRouteBottomBar(KadasBottomBar):
         footprint.setToGeometry(polygon)
         self.areasToAvoidFootprint.append(footprint)
 
+    def saveCanvasAreasToAvoidLayer(self):
+        name = "avoid_areas"
+        CanvasLayerSaver(
+            name,
+            self.areasToAvoid,
+            crs=self.canvas.mapSettings().destinationCrs(),
+            color=AVOID_AREA_COLOR,
+            style=AVOID_AREA_STYLE,
+        )
+
     def createLayer(self, name):
         layer = OptimalRouteLayer(name)
         return layer
@@ -200,7 +218,6 @@ class ValhallaRouteBottomBar(KadasBottomBar):
         profile, costingOptions = vehicles.options_for_vehicle(vehicle)
 
         if self.radioAreasToAvoidPolygon.isChecked():
-            # Currently only single polygon is accepted
             areasToAvoid = self.areasToAvoid
             canvasCrs = self.canvas.mapSettings().destinationCrs()
             transformer = transformToWGS(canvasCrs)
